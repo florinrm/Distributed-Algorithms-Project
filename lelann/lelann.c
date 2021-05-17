@@ -32,17 +32,24 @@ int main (int argc, char *argv[]) {
 
     int recv_val, value = rank;
     int prec = rank == 0 ? procs - 1 : rank - 1;
+    MPI_Request send_request, recv_request;
 
-    MPI_Send(&value, 1, MPI_INT, (rank + 1) % procs, 0, MPI_COMM_WORLD);
+    MPI_Isend(&value, 1, MPI_INT, (rank + 1) % procs, 0, MPI_COMM_WORLD, &send_request);
+    MPI_Wait(&send_request, NULL);
 
-    MPI_Recv(&recv_val, 1, MPI_INT, prec, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    MPI_Irecv(&recv_val, 1, MPI_INT, prec, 0, MPI_COMM_WORLD, &recv_request);
+    MPI_Wait(&recv_request, NULL);
 
     list[i++] = recv_val;
     value = recv_val;
 
     while (rank != recv_val) {
-        MPI_Send(&value, 1, MPI_INT, (rank + 1) % procs, 0, MPI_COMM_WORLD);
-        MPI_Recv(&recv_val, 1, MPI_INT, prec, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        MPI_Isend(&value, 1, MPI_INT, (rank + 1) % procs, 0, MPI_COMM_WORLD, &send_request);
+        MPI_Wait(&send_request, NULL);
+
+        MPI_Irecv(&recv_val, 1, MPI_INT, prec, 0, MPI_COMM_WORLD, &recv_request);
+        MPI_Wait(&recv_request, NULL);
+
         value = recv_val;
         list[i++] = recv_val;
     }
