@@ -28,18 +28,21 @@ int main (int argc, char *argv[]) {
     MPI_Comm_size(MPI_COMM_WORLD, &procs);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
+    MPI_Request send_request, recv_request;
+
     int state = CANDIDATE;
 
     int recv_val, value = rank;
 
-    MPI_Send(&value, 1, MPI_INT, (rank + 1) % procs, 0, MPI_COMM_WORLD);
+    MPI_Isend(&value, 1, MPI_INT, (rank + 1) % procs, 0, MPI_COMM_WORLD, &send_request);
+    MPI_Wait(&send_request, NULL);
+
     int stop_message_sent = 0;
     
     while (state != LEADER) {
         int prec = rank == 0 ? procs - 1 : rank - 1;
-        MPI_Status status;
-
-        MPI_Recv(&recv_val, 1, MPI_INT, prec, 0, MPI_COMM_WORLD, &status);
+        MPI_Irecv(&recv_val, 1, MPI_INT, prec, 0, MPI_COMM_WORLD, &recv_request);
+        MPI_Wait(&recv_request, NULL);
 
         if (recv_val == rank) {
             state == LEADER;
@@ -50,7 +53,8 @@ int main (int argc, char *argv[]) {
                 state = LOST;
                 printf("Process [%d] lost!\n", rank);
                 value = recv_val;
-                MPI_Send(&value, 1, MPI_INT, (rank + 1) % procs, 0, MPI_COMM_WORLD);
+                MPI_Isend(&value, 1, MPI_INT, (rank + 1) % procs, 0, MPI_COMM_WORLD, &send_request);
+                MPI_Wait(&send_request, NULL);
             }
         }
     }
