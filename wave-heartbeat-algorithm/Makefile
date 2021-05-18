@@ -1,8 +1,8 @@
 build:
-	mpicc main.c -o main -lm
+	mpicc heartbeat.c -o heartbeat -lm
 
 run:
-	mpirun --oversubscribe -np 12 main
+	mpirun --oversubscribe -np 12 heartbeat
 
 clean:
-	rm main
+	rm heartbeat

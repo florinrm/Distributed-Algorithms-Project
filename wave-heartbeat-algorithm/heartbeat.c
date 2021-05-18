@@ -46,9 +46,8 @@ int leader_chosing(int rank, int nProcesses) {
 	return leader;
 }
 
-int main(int argc, char * argv[]) {
-	int rank, nProcesses, num_procs, leader;
-	int *parents, **topology;
+int main(int argc, char *argv[]) {
+	int rank, nProcesses, leader;
 
 	MPI_Init(&argc, &argv);
 	MPI_Status status;
