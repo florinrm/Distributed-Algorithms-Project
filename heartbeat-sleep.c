@@ -33,21 +33,39 @@ int leader_chosing(int rank, int nProcesses) {
 	for (int k = 0; k < CONVERGENCE_COEF; k++) {
 		for (int i = 0; i < num_neigh; i++) {
 			MPI_Isend(&leader, 1, MPI_INT, neigh[i], 1, MPI_COMM_WORLD, &send_request);
-			
+			sleep(5);
 			MPI_Irecv(&q, 1, MPI_INT, MPI_ANY_SOURCE, 1, MPI_COMM_WORLD, &recv_request);
-			MPI_Wait(&recv_request, NULL);
+
+			// se asteapta un cvorum - macar de la un copil
+			// daca am primit de la cel putin un copil sau ceva rang minimal
+
+			// am primit de la un copil, stau un timp -> e ok
+			// daca nu am primit de la niciunul, mai astept
+			// daca nu si nu -> abort, ca nu e ceva ok
+
+			sleep(5);
+
+			printf("[%d]: leader = %d | recv_value = %d\n", rank, leader, q);
+
+			if (q == -1) {
+				sleep(5);
+			}
+
+			if (q == -1) {
+				sleep(5);
+			}
 
 			if (q != -1) {
+				printf("[%d]: leader = %d | recv_value = %d\n | success\n", rank, leader, q);
 				if (q > leader) {
 					leader = q;
 				}
 			} else {
+				printf("[%d]: leader = %d | recv_value = %d\n | now aborting...\n", rank, leader, q);
 				MPI_Abort(MPI_COMM_WORLD, MPI_SUCCESS);
 			}
 		}
 	}
-
-	MPI_Barrier(MPI_COMM_WORLD);
 
 	printf("%i/%i: leader is %i\n", rank, nProcesses, leader);
 
